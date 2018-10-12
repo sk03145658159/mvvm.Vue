@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="vue.js"></script>
+</head>
+<style>
+    .form{
+        width: 400px;
+        height: auto;
+        margin:0 auto;
+    }
+    input{
+        width: 300px;
+        height: 30px;
+        margin:0 auto;
+    }
+    ul,li{
+        width: 400px;
+        height: auto;
+        list-style: none;
+        margin: 0 auto;
+        padding:0;
+        overflow: hidden;
+    }
+    ul{
+        margin-top:10px;
+    }
+    li{
+        border:1px solid rgb(0, 247, 255);
+        box-sizing: border-box;
+    }
+    li span{
+        float:left;
+    }
+    .mark{
+        width:10px;
+        height: 10px;
+        border-radius: 50%;
+        border:1px solid #000;
+        margin:auto 0;
+        margin-top:5px;
+        cursor: pointer;
+    }
+    .con{
+        margin-left:10px;
+    }
+    .remove{
+        float:right;
+        cursor: pointer;
+    }
+    .message{
+        color:red;
+    }
+    .aa{
+        width: 400px;
+        height: auto;
+        color:#ccc;
+        margin:0 auto;
+    }
+    .red{
+        background-color:greenyellow;
+    }
+</style>
+<body>
+    <div class="box">
+        <div class="form">
+        <input type="text" v-model="con" placeholder="输入项目名称" @keydown.13="add"> <button type="button" @click="add">添加</button><br>
+        <span class="message">{{message}}</span><br>
+            <button type="button" @click="donefn(true)" :style="{color:(acssess==true?'#000':'gray')}">已完成</button>
+            <button type="button" @click="donefn(false)" :style="{color:(acssess==false?'#000':'gray')}">未完成</button>
+            <button type="button" @click="donefn('all')" :style="{color:(acssess=='all'?'#000':'gray')}">全部项目</button>  <!-- :style="{color:(acssess=='all'?'red','#000')}" -->
+        </div>
+       <ul v-for="item in result">
+           <li  @dblclick="change(item)">
+            <div v-if="item.status">
+                <span class="mark" :class="{red:item.isdone}" @click="done(item)"></span>   <!--冒号同v-bind -->
+                <!-- :style="{background-color:(item.isdown?'red':'none')}"  三元表达式形式 -->
+                <span class="con">{{item.con}}</span>
+                <span class="remove" @click="del(item.id)">删除</span>
+            </div>
+            <div v-else>
+                <input type="text" v-model="item.con" @blur="change(item)" v-focus> <!--指令引用是v-指令，自定义指令也是 -->
+            </div>
+            </li>
+       </ul>
+       <div v-show="datas.length==0" class="aa">没有内容</div>       <!--条件为真显示 -->
+    </div>
+</body>
+</html>
+<script>
+    Vue.directive("focus",{   //自定义指令
+        inserted:function(ele,val){
+            ele.focus()
+        }
+    })
+    new Vue({
+        el:".box",
+        data:{
+            con:"",
+            con1:"",
+            message:"",
+            datas:localStorage.todolist?JSON.parse(localStorage.todolist):[],
+            acssess:'all'
+        },
+        methods:{
+            add(){
+                if(this.con){
+                    var obj={}
+                    obj.con=this.con
+                    obj.id=Math.random()+new Date().getTime()
+                    obj.status=true
+                    obj.isdone=false
+                    this.datas.push(obj)
+                    localStorage.todolist=JSON.stringify(this.datas)
+                    this.message=""
+                }else{
+                    this.message="请输入项目名"
+                }
+                this.con=""
+            },
+            del(id){
+                this.datas=this.datas.filter((item)=>{
+                    if(id!=item.id){
+                        return item
+                    }
+                })
+            },
+            change(obj){
+                obj.status=! obj.status
+                localStorage.todolist=JSON.stringify(this.datas)
+            },
+            done(obj){
+                obj.isdone=! obj.isdone
+                localStorage.todolist=JSON.stringify(this.datas)
+            },
+            donefn(val){
+                this.acssess=val
+            }
+        },
+        computed:{    //在其中定义动态数据
+            result(){     //返回对应的相关数据
+               return this.datas.filter((item)=>{   //筛选数据
+                    if(this.acssess=="all"){
+                        return item
+                    }else if(item.isdone==this.acssess){
+                        return item
+                    }
+                })
+            }
+        },
+        // watch:{    //监听输入框是否为空
+        //     con(news){
+        //         if(news){
+        //             this.message=""
+        //         }else{
+        //             this.message="输入内容"
+        //         }
+        //     }
+        // }
+    })
+    // keydown.13
+</script>
+<!-- js中引发执行函数的方式
+1.通过函数名直接调用
+2.通过事件调用
+3.自调用 -->
